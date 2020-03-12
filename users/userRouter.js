@@ -47,7 +47,7 @@ router.post('/:id/posts', (req, res) => {
 });
 
 router.get('/', (req, res) => {
-  Users.find(req.query)
+  Users.get(req.query)
     .then(users => {
         res.status(200).json(users)
     })
@@ -59,23 +59,11 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
   
-  Users.getById(req.params.id)
-    .then(user => {
-        if (user === undefined) {
-            res.status(404).json({message: "The user with the specified ID does not exist."})
-        } else {
-            res.status(200).json(user)
-        }
-        
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(500).json({ 
-            error: "The user information could not be retrieved." 
-        });
-    });
+ 
+  res.status(200).json(req.user);
+  
 });
 
 router.get('/:id/posts', (req, res) => {
@@ -155,7 +143,21 @@ router.put('/:id', (req, res) => {
 //custom middleware
 
 function validateUserId(req, res, next) {
-  // do your magic!
+  Users.getById(req.params.id)
+  .then(user => {
+    if (user === undefined) {
+        res.status(404).json({message: "The user with the specified ID does not exist."})
+    } else {
+        req.user=user;
+        next();
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ 
+        error: "The user information could not be retrieved." 
+    });
+  });
 }
 
 function validateUser(req, res, next) {

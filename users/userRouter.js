@@ -1,46 +1,34 @@
 const express = require('express');
 
 const Users = require('./userDb');
+const Posts = require('../posts/postDb');
 
 const router = express.Router();
 
-router.post('/', (req, res) => {
-  const userInfo = req.body;
-
-    if (userInfo.name == false) {
-        res.status(400).json({errorMessage: "Please provide name for the user"});
-    return;
-} 
-    Users.insert(userInfo)
+router.post('/', validateUser, (req, res) => {
+  
+    Users.insert(req.body)
     .then(user => {
         res.status(201).json(user)
     })
     .catch(err => {
         console.log(err);
         res.status(500).json({ 
-            error: "There was an error while saving the post to the database" 
+            error: "There was an error while saving the user to the database" 
         });
     });
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
 
-  const postInfo = req.body;
-
-  postInfo.user_id = req.params.id;
-
-  if (postInfo.text == false) {
-      res.status(400).json({errorMessage: "Please provide text for the comment."});
-      return;
-  } 
-  Users.insert(postInfo)
+  Posts.insert(req.body)
   .then(post => {
       res.status(201).json(post)
   })
   .catch(err => {
       console.log(err);
       res.status(500).json({ 
-          error: "There was an error while saving the comment to the database" 
+          error: "There was an error while saving the post to the database" 
       });
   });
 
@@ -66,20 +54,18 @@ router.get('/:id', validateUserId, (req, res) => {
   
 });
 
-router.get('/:id/posts', (req, res) => {
-  Users.getById(req.params.id)
+router.get('/:id/posts', validateUserId, (req, res) => {
+  Posts.get()
     .then(posts => {
-        if (posts === undefined) {
-            res.status(404).json({message: "The post with the specified ID does not exist."})
-        } else {
-            res.status(200).json(posts)
-        }
+      const userPosts = posts.filter(post => post.user_id == req.user.id);
         
+      res.status(200).json(userPosts)
+    
     })
     .catch(err => {
         console.log(err);
         res.status(500).json({ 
-            error: "The comments information could not be retrieved." 
+            error: "The posts information could not be retrieved." 
         });
     });
 });
@@ -161,11 +147,37 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+  const userInfo = req.body;
+
+  userInfo.user_id = req.params.id;
+
+  if (userInfo == null) {
+    res.status(400).json({errorMessage: "missing user data"});
+    return;
+  } 
+
+  if (userInfo.name == false) {
+      res.status(400).json({errorMessage: "missing required name field"});
+      return;
+  } 
+  next();
 }
 
 function validatePost(req, res, next) {
-  // do your magic!
+  const postInfo = req.body;
+
+  postInfo.user_id = req.user.id;
+
+  if (postInfo == null) {
+    res.status(400).json({errorMessage: "missing post data"});
+    return;
+  } 
+
+  if (postInfo.text == false) {
+      res.status(400).json({errorMessage: "missing required text field"});
+      return;
+  } 
+  next();
 }
 
 module.exports = router;

@@ -94,6 +94,22 @@ router.put('/:id', (req, res) => {
 
 function validatePostId(req, res, next) {
   // do your magic!
+  Posts.getById(req.params.id)
+  .then(post => {
+    if (post === undefined) {
+        res.status(404).json({message: "The post with the specified ID does not exist."})
+    } else {
+        res.status(200).json(post)
+    }
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ 
+        error: "The post information could not be retrieved." 
+    });
+  });
+  
+  next();
 }
 
 module.exports = router;

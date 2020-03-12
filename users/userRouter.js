@@ -87,34 +87,39 @@ router.delete('/:id', (req, res) => {
     });
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', validateUser, validateUserId, (req, res) => {
   const userInfo = req.body;
 
-  if (userInfo.name == false) {
-      res.status(400).json({errorMessage: "Please provide a name for the user"});
-  return;
-  }
+  // if (userInfo.name == false) {
+  //     res.status(400).json({errorMessage: "Please provide a name for the user"});
+  // return;
+  // }
 
-  Users.update(req.params.id, postInfo)
+  Users.update(req.params.id, userInfo)
   .then(count => {
+    console.log('count', count);
       if (count === 1) {
-          Users.getById(req.params.id)
-          .then(users => {
-              if(users === undefined) 
-              {
-                  res.status(404).json({ message: "The user with the specified ID does not exist." })
-              } else {
-                  res.status(200).json(users)
-              }
-          })
-          .catch(err => {
-              console.log(err)
-              res.status()
-          })
-          res.status(404).json({message: "The user with the specified ID does not exist."})
+        res.status(200).json(count)
       } else {
-          res.status(200).json(users)
+        res.status(500).json({message: "The user information could not be retrieved"})
       }
+      //     Users.getById(req.params.id)
+      //     .then(users => {
+      //         if(users === undefined) 
+      //         {
+      //             res.status(404).json({ message: "The user with the specified ID does not exist." })
+      //         } else {
+      //             res.status(200).json(users)
+      //         }
+      //     })
+      //     .catch(err => {
+      //         console.log(err)
+      //         res.status(500).json({message: "The user information could not be retrieved"})
+      //     })
+        
+      // } else {
+      //     res.status(200).json(users)
+      // }
       
   })
   .catch(err => {
@@ -148,7 +153,6 @@ function validateUserId(req, res, next) {
 function validateUser(req, res, next) {
   const userInfo = req.body;
 
-  userInfo.user_id = req.params.id;
 
   if (userInfo == null) {
     res.status(400).json({errorMessage: "missing user data"});

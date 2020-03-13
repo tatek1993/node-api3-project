@@ -138,7 +138,7 @@ function validateUserId(req, res, next) {
     if (user === undefined) {
         res.status(404).json({message: "The user with the specified ID does not exist."})
     } else {
-        req.user=user;
+        req.user = user;
         next();
     }
   })
